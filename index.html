@@ -11,7 +11,7 @@
 :root { --bg-color: #dfdfdf; }
 body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background: var(--bg-color); color: #000; overflow-x: hidden; }
 
-/* 監禁モード：神以外はロゴもボタンも消える */
+/* 聖域監禁モード：一般人はロゴもボタンも消えてスレから出られなくなる */
 body.god-mode .header-logo, body.god-mode .board-grid, body.god-mode #home > button { display: none !important; }
 body.god-mode:not(.is-admin) #exit-btn { display: none !important; } 
 body.god-mode.is-admin #exit-btn { display: block !important; } 
@@ -70,8 +70,8 @@ textarea, input, select { width: 100%; box-sizing: border-box; padding: 10px; ma
 <div id="panel" class="panel hidden"></div>
 
 <script>
-// --- ひろゆきさんのFirebaseに接続 ---
-const firebaseConfig = { databaseURL: "https://ch-1cf06-default-rtdb.firebaseio.com/" };
+// --- ひろゆき神のFirebase接続設定 ---
+const firebaseConfig = { databaseURL: "https://ch2-75f11-default-rtdb.firebaseio.com/" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -80,7 +80,7 @@ const myID = localStorage.getItem("myFixedID") || localStorage.setItem("myFixedI
 const boards = ["雑談板", "SOS板", "料理板", "ゲーム板", "ニュース板", "チート板", "実況板", "AA板"];
 const aaList = ["　 　 　　　＿＿＿_ \n　 　 　 ／　　　 　 ＼\n　　　／　 _ノ 　ヽ､_　＼\n　 ／ 　oﾟ⌒　　　⌒ﾟo　 ＼ \n　 |　　　　 （__人__）　　　　| \n　 ＼　　 　 ｀ ⌒´ 　 　 ／", "　　　 ∧ ∧\n　　　(ﾟДﾟ　)　行ってよし！\n￣￣￣￣￣￣￣￣￣￣￣"];
 
-// --- リアルタイム監視 ---
+// --- リアルタイム監視システム ---
 db.ref('godMode').on('value', snap => {
     const data = snap.val();
     if(data && data.active) {
@@ -91,16 +91,15 @@ db.ref('godMode').on('value', snap => {
     }
 });
 db.ref('triggerAA').on('value', snap => { if(snap.val()) spawnAA(); });
-db.ref('triggerYaju').on('value', snap => { if(snap.val()) { yajuArea.style.bottom="0"; setTimeout(()=>yajuArea.style.bottom="-350px",3000); }});
+db.ref('triggerYaju').on('value', snap => { if(snap.val()) { const y = document.getElementById('yaju-area'); y.style.bottom="0"; setTimeout(()=>y.style.bottom="-350px",3000); }});
 
-// --- 基本機能 ---
+// --- 基本UI機能 ---
 function renderBoardLinks(){ document.getElementById('board-area').innerHTML = boards.map(b => `<div class="board-link" onclick="showRecent('${b}')">${b}</div>`).join(""); }
-
 function checkAdmin(){ if(document.getElementById('admin-code').value==="252525"){ localStorage.setItem("isAdmin","true"); location.reload(); }}
 function logoutAdmin(){ localStorage.setItem("isAdmin","false"); location.reload(); }
 function toggleAdminBar(){ document.getElementById('admin-bar').classList.toggle('hidden'); }
 
-// --- 神の権能 ---
+// --- 神のコントロール ---
 function summonAll() {
     db.ref('threads').limitToLast(1).once('value', snap => {
         if(!snap.exists()) return alert("まずスレを立ててください");
@@ -111,14 +110,14 @@ function stopSummon() { db.ref('godMode').set({ active: false }); }
 function globalAA() { db.ref('triggerAA').set(Date.now()); }
 function globalYaju() { db.ref('triggerYaju').set(Date.now()); }
 
-// --- 掲示板機能 ---
+// --- 掲示板ロジック ---
 function newThread(){
     openPanel(`<h3>スレ立て</h3>板：<select id="bs">${boards.map(b=>`<option>${b}</option>`).join("")}</select><br><input id="tit" placeholder="タイトル"><button onclick="createT()">作成</button><button onclick="closePanel()">戻る</button>`);
 }
 function createT(){
     let t = document.getElementById('tit').value;
     if(t) {
-        db.ref('threads').push({ title: t, board: document.getElementById('bs').value, posts: { "0": { name: "神", text: "スレ立て完了", date: "now", uid: "SYSTEM" } } });
+        db.ref('threads').push({ title: t, board: document.getElementById('bs').value, posts: { "init": { name: "神", text: "スレ立て完了", date: "now", uid: "GOD" } } });
         showRecent();
     }
 }
@@ -153,16 +152,19 @@ function openThread(key, stay = false){
     });
 }
 
-function showRules(){ openPanel(`<h3>ルール</h3>1.神には逆らわない<br>2.監禁を楽しめ<br>3.荒らし大歓迎<br><button onclick="closePanel()">戻る</button>`); }
+function showRules(){ openPanel(`<h3>ルール</h3>1.神には逆らわない<br>2.監禁を楽しむ<br>3.荒らし大歓迎<br><button onclick="closePanel()">戻る</button>`); }
 function devMail(){ openPanel(`<h3>管理人への手紙</h3><textarea id="mt"></textarea><button onclick="sm()">送る</button><button onclick="closePanel()">戻る</button>`); }
-function sm(){ db.ref('mails').push(document.getElementById('mt').value); alert("送ったゾ"); closePanel(); }
+function sm(){ db.ref('mails').push(document.getElementById('mt').value); alert("届いたゾ"); closePanel(); }
 function adminMails(){ db.ref('mails').once('value', snap => { let h="<h3>手紙</h3>"; snap.forEach(c=>h+=`<div class="post">${c.val()}</div>`); openPanel(h+`<button onclick="closePanel()">戻る</button>`); }); }
 function spawnAA(){ const box=document.getElementById('aa-box'); box.innerText=aaList[Math.floor(Math.random()*aaList.length)]; box.style.bottom="20px"; setTimeout(()=>box.style.bottom="-300px",4000); }
 function openPanel(h, s){ home.classList.add("hidden"); panel.innerHTML=h; panel.classList.remove("hidden"); if(!s) window.scrollTo(0,0); }
 function closePanel(){ panel.classList.add("hidden"); home.classList.remove("hidden"); }
 function clearDB() { if(confirm("マジで全部消すぞ？")) db.ref().set(null); }
-const yajuArea = document.getElementById('yaju-area');
-window.onload = () => { renderBoardLinks(); if(isAdmin) { document.getElementById('admin-tools').classList.remove('hidden'); document.body.classList.add('is-admin'); } };
+
+window.onload = () => { 
+    renderBoardLinks(); 
+    if(isAdmin) { document.getElementById('admin-tools').classList.remove('hidden'); document.body.classList.add('is-admin'); } 
+};
 </script>
 </body>
 </html>
