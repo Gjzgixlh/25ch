@@ -3,37 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>25ちゃんねる - 神の全知全能・最終形態</title>
+<title>25ちゃんねる - 神の全知全能・真の完成形</title>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&display=swap" rel="stylesheet">
 <style>
 :root { --bg-color: #dfdfdf; }
-body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background: var(--bg-color); color: #000; overflow-x: hidden; }
+body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background: var(--bg-color); color: #000; transition: 0.5s; overflow-x: hidden; }
 
-/* 聖域監禁モード */
-body.god-mode .header-logo, body.god-mode .board-grid, body.god-mode #home > button { display: none !important; }
-body.god-mode:not(.is-admin) #exit-btn { display: none !important; } 
-body.god-mode.is-admin #exit-btn { display: block !important; } 
+/* 能力コード用 */
+body.darkness { filter: invert(1) hue-rotate(180deg) !important; background: #000; }
+body.rainbow { animation: rainbow-anim 0.5s infinite; }
+body.mosaic { filter: blur(10px) contrast(200%); }
+body.flip { transform: rotate(180deg); }
+@keyframes rainbow-anim { 0%{filter:hue-rotate(0deg);} 100%{filter:hue-rotate(360deg);} }
 
 .header-container { width: 100%; background: #fff; border-bottom: 5px solid #000; text-align: center; padding-bottom: 10px; }
 .header-logo { font-size: 26px; font-weight: bold; color: #ff00ff; text-shadow: 2px 2px #000; padding: 15px 0; cursor: pointer; }
-.header-img { width: 95%; max-width: 450px; display: block; margin: 0 auto; border: 2px solid #000; box-shadow: 3px 3px 0px #888; }
 .menu, .panel { padding: 10px; max-width: 600px; margin: 0 auto; }
 button { width: 100%; padding: 12px; margin: 5px 0; font-size: 15px; cursor: pointer; background: #eee; border: 4px outset #999; font-weight: bold; border-radius: 8px; }
-.board-grid { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 10px; }
-.board-link { width: 48%; margin-bottom: 10px; padding: 15px 0; background: #fff; border: 2px solid #000; text-align: center; font-weight: bold; cursor: pointer; }
-.thread { background: #fff; padding: 12px; margin: 12px 0; border: 2px solid #000; box-shadow: 4px 4px 0px #888; position: relative; }
-.post { background: #efefef; margin: 8px 0; padding: 10px; border: 1px solid #ccc; font-size: 14px; }
-.name-niko { color: #ff00ff !important; font-weight: bold; }
-
-/* 弾幕 */
-#danmaku-container { position: fixed; top: 0; left: 0; width: 100%; height: 70%; pointer-events: none; z-index: 10000; }
-.danmaku-text { position: absolute; white-space: pre; font-size: 22px; font-weight: bold; color: #fff; text-shadow: 2px 2px 2px #000; }
-
+.board-grid { display: flex; flex-wrap: wrap; justify-content: space-between; }
+.board-link { width: 48%; margin-bottom: 10px; padding: 15px 0; background: #fff; border: 2px solid #000; text-align: center; cursor: pointer; font-weight: bold; }
+.thread { background: #fff; padding: 12px; margin: 12px 0; border: 2px solid #000; box-shadow: 4px 4px 0px #888; cursor: pointer; }
+.post { background: #efefef; margin: 8px 0; padding: 10px; border: 1px solid #ccc; font-size: 14px; position: relative; }
+.name-niko, .text-niko { color: #ff00ff !important; font-weight: bold; }
+.like-btn { background: #fff; border: 2px solid #ff00ff; color: #ff00ff; padding: 2px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; margin-top: 5px; font-weight: bold; }
+#danmaku-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10000; }
+.danmaku-text { position: absolute; white-space: pre; font-size: 30px; font-weight: bold; color: #fff; text-shadow: 2px 2px 2px #000; }
 #yaju-area { position: fixed; bottom: -350px; right: 10px; width: 220px; z-index: 5000; transition: 0.6s; pointer-events: none; }
-.aa-popup { position: fixed; bottom: -300px; left: 20px; background: #fff; border: 2px solid #000; padding: 10px; white-space: pre; z-index: 6000; transition: 0.5s; font-family: 'MS PGothic'; font-size: 14px; }
-#admin-bar { background: #000; color: #fff; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 2000; }
+#admin-bar { background: #000; color: #fff; padding: 10px; text-align: center; }
 .hidden { display: none !important; }
 textarea, input, select { width: 100%; box-sizing: border-box; padding: 10px; margin: 5px 0; border: 2px solid #333; }
 </style>
@@ -41,35 +39,32 @@ textarea, input, select { width: 100%; box-sizing: border-box; padding: 10px; ma
 <body>
 
 <div id="admin-bar" class="hidden">
-  ADMIN LOGIN: <input id="admin-code" type="tel" style="width:80px;"> <button onclick="checkAdmin()" style="width:auto;">認証</button>
+  ADMIN: <input id="admin-code" type="tel" style="width:80px;"> <button onclick="checkAdmin()" style="width:auto;">ログイン</button>
 </div>
 
 <div id="danmaku-container"></div>
 <div id="yaju-area"><img src="https://i.ibb.co/6R86KjLp/image.png" style="width:100%; filter: hue-rotate(180deg);"></div>
-<div id="aa-box" class="aa-popup"></div>
 
 <div class="header-container">
   <div class="header-logo" onclick="toggleAdminBar()">( ﾟ∀ﾟ) 25ちゃんねる (ﾟ∀ﾟ )</div>
-  <img class="header-img" src="https://i.ibb.co/6R86KjLp/image.png">
 </div>
 
 <div id="home" class="menu">
-  <button onclick="showRecent()">最近のスレ</button>
+  <button onclick="showRecent()" style="background: #ffffcc;">🔥 人気・最近のスレ</button>
   <button onclick="newThread()">スレ立て</button>
-  <button onclick="showRules()">ルール</button>
-  <button onclick="devMail()">管理人への手紙</button>
+  <button onclick="showRules()" style="background: #e6e6e6;">📖 ルール</button>
+  <button onclick="devMail()" style="background: #e6e6e6;">💌 管理人への手紙</button>
   <div class="board-grid" id="board-area"></div>
 
-  <div id="admin-tools" class="hidden" style="border: 5px solid #32cd32; padding: 15px; background: #e6ffe6; margin-top:20px;">
-    <p style="text-align:center; font-weight:bold; color:green;">【絶対神コントロールパネル】</p>
-    <button onclick="summonAll()" style="background:#000; color:#0f0;">📢 全員集合（監禁）</button>
-    <button onclick="stopSummon()" style="background:#fff; color:#000;">⚪ 聖域を解除</button>
-    <button onclick="sendGlobalMsg()" style="background:#ff00ff; color:#fff;">💬 グローバルアナウンス（弾幕）</button>
-    <button onclick="globalAA()" style="background:#00f; color:#fff;">🐱 AAテロ</button>
+  <div id="admin-tools" class="hidden" style="border: 5px solid #ff00ff; padding: 15px; background: #fff0ff; margin-top:20px;">
+    <p style="text-align:center; font-weight:bold;">【絶対神コントロールパネル】</p>
+    能力コード: <input id="ability-code" placeholder="DARKNESS, RAINBOW, MOSAIC, FLIP, RESET">
+    <button onclick="sendAbility()" style="background:#ff00ff; color:#fff;">神の能力を発動（全員反映）</button>
+    <button onclick="sendGlobalMsg()" style="background:#000; color:#fff;">💬 弾幕送信</button>
     <button onclick="globalYaju()" style="background:#ff8c00; color:#fff;">👹 野獣テロ</button>
     <button onclick="adminDelList()">💥 スレ消去</button>
     <button onclick="adminMails()">手紙を読む</button>
-    <button onclick="clearDB()" style="background:red; color:white;">🔥 全データ初期化</button>
+    <button onclick="clearDB()" style="background:red; color:white;">🔥 全消去</button>
     <button onclick="logoutAdmin()">ログアウト</button>
   </div>
 </div>
@@ -84,102 +79,82 @@ const db = firebase.database();
 let isAdmin = localStorage.getItem("isAdmin") === "true";
 const myID = localStorage.getItem("myFixedID") || localStorage.setItem("myFixedID", Math.random().toString(36).substring(2, 10).toUpperCase()) || localStorage.getItem("myFixedID");
 const boards = ["雑談板", "SOS板", "料理板", "ゲーム板", "ニュース板", "チート板", "実況板", "AA板"];
-const aaList = ["　 　 　　　＿＿＿_ \n　 　 　 ／　　　 　 ＼\n　　　／　 _ノ 　ヽ､_　＼\n　 ／ 　oﾟ⌒　　　⌒ﾟo　 ＼ \n　 |　　　　 （__人__）　　　　| \n　 ＼　　 　 ｀ ⌒´ 　 　 ／", "　　　 ∧ ∧\n　　　(ﾟДﾟ　)　行ってよし！\n￣￣￣￣￣￣￣￣￣￣￣"];
 
-// --- リアルタイム監視 ---
-db.ref('godMode').on('value', snap => {
-    const d = snap.val();
-    if(d && d.active) { document.body.classList.add('god-mode'); openThread(d.targetKey, true); }
-    else { document.body.classList.remove('god-mode'); }
+// リアルタイム能力監視
+db.ref('ability').on('value', snap => {
+    const c = snap.val();
+    document.body.className = '';
+    if(c === 'DARKNESS') document.body.classList.add('darkness');
+    if(c === 'RAINBOW') document.body.classList.add('rainbow');
+    if(c === 'MOSAIC') document.body.classList.add('mosaic');
+    if(c === 'FLIP') document.body.classList.add('flip');
 });
-db.ref('triggerAA').on('value', snap => { if(snap.val()) spawnAA(); });
-db.ref('triggerYaju').on('value', snap => { if(snap.val()) { const y = document.getElementById('yaju-area'); y.style.bottom="0"; setTimeout(()=>y.style.bottom="-350px",3000); }});
-db.ref('globalMsg').on('value', snap => { if(snap.val()) createDanmaku(snap.val().text); });
 
-function createDanmaku(text) {
-    const span = document.createElement('span');
-    span.className = 'danmaku-text';
-    span.innerText = text;
-    span.style.top = Math.random() * 80 + '%';
-    span.style.right = '-100%';
-    document.getElementById('danmaku-container').appendChild(span);
-    let pos = -100;
-    function move() { pos += 5; span.style.right = pos + 'px'; if(pos < window.innerWidth + 1000) requestAnimationFrame(move); else span.remove(); }
-    move();
+// 弾幕
+db.ref('danmaku').on('child_added', snap => {
+    const d = snap.val();
+    if (d && Date.now() - d.time < 5000) {
+        const s = document.createElement('span'); s.className = 'danmaku-text'; s.innerText = d.text;
+        s.style.top = (Math.random() * 80) + '%'; s.style.left = '100%';
+        document.getElementById('danmaku-container').appendChild(s);
+        let x = window.innerWidth;
+        function m() { x -= 8; s.style.left = x + 'px'; if(x > -1000) requestAnimationFrame(m); else s.remove(); } m();
+    }
+});
+
+db.ref('triggerYaju').on('value', snap => { if(snap.val()) { const y = document.getElementById('yaju-area'); y.style.bottom="0"; setTimeout(()=>y.style.bottom="-350px",3000); }});
+
+function sendPost(key, bName){
+    let text = document.getElementById('pc').value; if(!text) return;
+    let name = (isAdmin || bName === "雑談板") ? "にこちゃん" : (document.getElementById('un').value || "名無し");
+    db.ref(`threads/${key}/posts`).push({ name, text, uid: myID, date: new Date().toLocaleTimeString(), isAdmin: (isAdmin || bName==="雑談板"), likes: 0 });
+    if(bName === "雑談板") db.ref('danmaku').push({ text, time: Date.now() });
+    document.getElementById('pc').value = "";
 }
 
+function addLike(tKey, pKey) { db.ref(`threads/${tKey}/posts/${pKey}/likes`).transaction(l => (l || 0) + 1); }
+
+function showRecent(b){
+    db.ref('threads').once('value', snap => {
+        let h = `<h3>${b||'🔥 人気・最近のスレ'}</h3>`;
+        snap.forEach(c => { const t = c.val(); if(!b || t.board === b) h += `<div class="thread" onclick="openThread('${c.key}')">${t.title} <small>(${t.board})</small></div>`; });
+        openPanel(h + `<button onclick="closePanel()">戻る</button>`);
+    });
+}
+
+function openThread(key){
+    db.ref(`threads/${key}`).on('value', snap => {
+        const t = snap.val(); if(!t || document.getElementById('panel').classList.contains('hidden')) return;
+        let h = `<h3>【${t.board}】${t.title}</h3>`;
+        if(t.posts) Object.keys(t.posts).forEach(pk => {
+            const p = t.posts[pk];
+            h += `<div class="post"><b class="${p.isAdmin?'name-niko':''}">${p.name}</b> [${p.date}] ID:${p.uid}<br><span class="${p.isAdmin?'text-niko':''}">${p.text}</span><br><div class="like-btn" onclick="addLike('${key}','${pk}')">👍 ${p.likes||0}</div></div>`;
+        });
+        h += `<hr>名前：<input id="un" value="${isAdmin?'にこちゃん':'名無し'}" style="width:100px;"><textarea id="pc"></textarea><button onclick="sendPost('${key}','${t.board}')">書き込む</button><button onclick="closePanel()">戻る</button>`;
+        document.getElementById('panel').innerHTML = h;
+        document.getElementById('home').classList.add('hidden');
+        document.getElementById('panel').classList.remove('hidden');
+    });
+}
+
+function sendAbility() { db.ref('ability').set(document.getElementById('ability-code').value.toUpperCase()); }
+function globalYaju() { db.ref('triggerYaju').set(Date.now()); }
+function showRules(){ openPanel(`<h3>ルール</h3>1.神に従え<br>2.雑談板ではニコニコすること(ﾟ∀ﾟ)<br>3.野獣先輩を崇めよ<br><button onclick="closePanel()">戻る</button>`); }
+function devMail(){ openPanel(`<h3>管理人への手紙</h3><textarea id="mt"></textarea><button onclick="sm()">送る</button><button onclick="closePanel()">戻る</button>`); }
+function sm(){ db.ref('mails').push(document.getElementById('mt').value); alert("送信完了"); closePanel(); }
+function adminMails(){ db.ref('mails').once('value', s => { let h="<h3>手紙</h3>"; s.forEach(c=>h+=`<div class="post">${c.val()}</div>`); openPanel(h+`<button onclick="closePanel()">戻る</button>`); }); }
 function checkAdmin(){ if(document.getElementById('admin-code').value==="252525"){ localStorage.setItem("isAdmin","true"); location.reload(); }}
 function logoutAdmin(){ localStorage.setItem("isAdmin","false"); location.reload(); }
 function toggleAdminBar(){ document.getElementById('admin-bar').classList.toggle('hidden'); }
-
-// 神の権限
-function summonAll() {
-    db.ref('threads').limitToLast(1).once('value', s => { if(s.exists()) db.ref('godMode').set({ active: true, targetKey: Object.keys(s.val())[0] }); });
-}
-function stopSummon() { db.ref('godMode').set({ active: false }); }
-function sendGlobalMsg() { const text = prompt("流すメッセージ"); if(text) db.ref('globalMsg').set({ text, time: Date.now() }); }
-function globalAA() { db.ref('triggerAA').set(Date.now()); }
-function globalYaju() { db.ref('triggerYaju').set(Date.now()); }
-
-function newThread(){
-    openPanel(`<h3>スレ立て</h3>板：<select id="bs">${boards.map(b=>`<option>${b}</option>`).join("")}</select><br><input id="tit" placeholder="タイトル"><button onclick="createT()">作成</button><button onclick="closePanel()">戻る</button>`);
-}
-function createT(){
-    let t = document.getElementById('tit').value;
-    if(t) db.ref('threads').push({ title: t, board: document.getElementById('bs').value, posts: { "0": { name: "神", text: "スレ立て完了", date: "now", uid: "GOD", isAdmin: true } } });
-    showRecent();
-}
-function sendPost(key){
-    const text = document.getElementById('pc').value; if(!text) return;
-    db.ref('threads/' + key + '/posts').push({
-        name: document.getElementById('un').value || "名無し",
-        text, uid: myID, date: new Date().toLocaleTimeString(), isAdmin
-    });
-    document.getElementById('pc').value = "";
-}
-function showRecent(b){
-    db.ref('threads').on('value', snap => {
-        let h = `<h3>${b||'最近'}のスレ</h3>`;
-        snap.forEach(child => {
-            const t = child.val();
-            if(!b || t.board === b) h += `<div class="thread" onclick="openThread('${child.key}')">${t.title} <small>(${t.board})</small></div>`;
-        });
-        openPanel(h + `<button onclick="closePanel()">戻る</button>`);
-    });
-}
-function openThread(key, stay = false){
-    db.ref('threads/' + key).on('value', snap => {
-        const t = snap.val(); if(!t) return;
-        let h = `<h3>【${t.board}】${t.title}</h3>`;
-        if(t.posts) Object.values(t.posts).forEach(p => {
-            h += `<div class="post"><b class="${p.isAdmin?'name-niko':''}">${p.name}</b> [${p.date}] ID:${p.uid}<br>${p.text}</div>`;
-        });
-        h += `<hr>名前：<input id="un" value="${isAdmin?'にこちゃん':'名無し'}" style="width:100px;"><textarea id="pc"></textarea><button onclick="sendPost('${key}')">書き込む</button>`;
-        h += `<button onclick="closePanel()" id="exit-btn">戻る</button>`;
-        openPanel(h, stay);
-    });
-}
-
-function adminDelList(){
-    db.ref('threads').once('value', s => {
-        let h = "<h3>スレ消去</h3>";
-        s.forEach(c => { h += `<div>${c.val().title} <button onclick="db.ref('threads/${c.key}').remove(); adminDelList();">消す</button></div>`; });
-        openPanel(h + `<button onclick="closePanel()">戻る</button>`);
-    });
-}
-function showRules(){ openPanel(`<h3>ルール</h3>1.神に従う<br>2.監禁を楽しむ<br><button onclick="closePanel()">戻る</button>`); }
-function devMail(){ openPanel(`<h3>手紙</h3><textarea id="mt"></textarea><button onclick="sm()">送る</button><button onclick="closePanel()">戻る</button>`); }
-function sm(){ db.ref('mails').push(document.getElementById('mt').value); alert("送った"); closePanel(); }
-function adminMails(){ db.ref('mails').once('value', s => { let h="<h3>手紙</h3>"; s.forEach(c=>h+=`<div class="post">${c.val()}</div>`); openPanel(h+`<button onclick="closePanel()">戻る</button>`); }); }
-function spawnAA(){ const box=document.getElementById('aa-box'); box.innerText=aaList[Math.floor(Math.random()*aaList.length)]; box.style.bottom="20px"; setTimeout(()=>box.style.bottom="-300px",4000); }
-function openPanel(h, s){ document.getElementById('home').classList.add("hidden"); const p = document.getElementById('panel'); p.innerHTML=h; p.classList.remove("hidden"); if(!s) window.scrollTo(0,0); }
-function closePanel(){ document.getElementById('panel').classList.add("hidden"); document.getElementById('home').classList.remove("hidden"); }
+function sendGlobalMsg() { const t = prompt("弾幕"); if(t) db.ref('danmaku').push({ text: t, time: Date.now() }); }
+function adminDelList(){ db.ref('threads').once('value', s => { let h = "<h3>スレ消去</h3>"; s.forEach(c => { h += `<div>${c.val().title} <button onclick="db.ref('threads/${c.key}').remove(); adminDelList();">消す</button></div>`; }); openPanel(h + `<button onclick="closePanel()">戻る</button>`); }); }
+function newThread(){ openPanel(`<h3>スレ立て</h3>板：<select id="bs">${boards.map(b=>`<option>${b}</option>`).join("")}</select><input id="tit" placeholder="タイトル"><button onclick="createT()">作成</button><button onclick="closePanel()">戻る</button>`); }
+function createT(){ let t=document.getElementById('tit').value; let b=document.getElementById('bs').value; if(t) db.ref('threads').push({ title:t, board:b, posts:{"0":{name:"神",text:"降臨",date:"now",uid:"GOD",isAdmin:true}}}); showRecent(); }
+function openPanel(h) { document.getElementById('home').classList.add("hidden"); const p = document.getElementById('panel'); p.innerHTML=h; p.classList.remove("hidden"); window.scrollTo(0,0); }
+function closePanel() { document.getElementById('panel').classList.add("hidden"); document.getElementById('home').classList.remove("hidden"); db.ref().off(); }
 function clearDB() { if(confirm("全消去？")) db.ref().set(null); }
 
-window.onload = () => { 
-    document.getElementById('board-area').innerHTML = boards.map(b => `<div class="board-link" onclick="showRecent('${b}')">${b}</div>`).join("");
-    if(isAdmin) document.getElementById('admin-tools').classList.remove('hidden');
-};
+window.onload = () => { document.getElementById('board-area').innerHTML = boards.map(b => `<div class="board-link" onclick="showRecent('${b}')">${b}</div>`).join(""); if(isAdmin) document.getElementById('admin-tools').classList.remove('hidden'); };
 </script>
 </body>
 </html>
